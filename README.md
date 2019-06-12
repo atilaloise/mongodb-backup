@@ -4,6 +4,8 @@ Backup MongoDB to anywhere
 ## Overview
 Use a container to back up MongoDB in a practical way
 
+docker pull atilaloise/mongodb-backup
+
 Features:
 
 * dump and restore
