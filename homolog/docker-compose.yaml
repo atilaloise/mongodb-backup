@@ -1,0 +1,53 @@
+version: '3.4'
+volumes:
+  mongodb:
+services:
+  mongo:
+    image: mongo
+    command: mongod --smallfiles --oplogSize 128 --replSet rs01
+    volumes:
+      - mongodb:/data/db
+      - /etc/localtime:/etc/localtime:ro
+  # mongo-init-replica:
+  #   image: mongo
+  #   command: 'bash -c "for i in `seq 1 30`; do mongo mongo/rocketchat --eval \"rs.initiate({ _id: ''rs01'', members: [ { _id: 0, host: ''mongo:27017'' } ]})\" && s=$$? && break || s=$$?; echo \"Tried $$i times. Waiting 5 secs...\"; sleep 5; done; (exit $$s)"'
+  #   depends_on:
+  #     - mongo
+  RocketChat:
+    image: rocketchat/rocket.chat
+    depends_on:
+     - mongo
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/rocketchat
+      - ROOT_URL=https://localhost
+      - MONGO_OPLOG_URL=mongodb://mongo:27017/local
+      - Accounts_UseDNSDomainCheck=False
+    ports:
+      - "3000:3000"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+#   mongo-backup:
+#     image: registry.tce.ro.gov.br/mongodb-backup:1.0
+#     environment:
+#       - MONGO_URI=mongodb://mongo:27017/rocketchat
+#       - DB_DUMP_TARGET=s3://dumps/RocketChatHomolog
+#       - DB_DUMP_DEBUG=true
+#       - DB_DUMP_BEGIN=1345
+#       - AWS_ACCESS_KEY_ID=diarc
+#       - AWS_SECRET_ACCESS_KEY=d14rcs3t1cd14rcs3t1cd14rcs3t1c
+#       - AWS_ENDPOINT_URL=https://minio.tce.ro.gov.br
+#       - COMPRESSION=bzip2
+#     volumes:
+# #       - /etc/localtime:/etc/localtime:ro
+#   mongo-restore:
+#     image: registry.tce.ro.gov.br/mongodb-backup:1.0
+#     environment:
+#       - MONGO_URI=mongodb://mongo:27017/rocketchat
+#       - DB_DUMP_DEBUG=true
+#       - DB_RESTORE_TARGET=s3://dumps/RocketChatHomolog/db_backup_20190605161954.tbz2
+#       - COMPRESSION=bzip2
+#       - AWS_ACCESS_KEY_ID=diarc
+#       - AWS_SECRET_ACCESS_KEY=d14rcs3t1cd14rcs3t1cd14rcs3t1c
+#       - AWS_ENDPOINT_URL=https://minio.tce.ro.gov.br
+#     volumes:
+#       - /etc/localtime:/etc/localtime:ro
